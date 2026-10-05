@@ -45,6 +45,16 @@ You can also download the ZIP from the [v1.0.0 release](https://github.com/ycang
 
 Run this command **without sudo**, inside your GNOME desktop session. It installs a launcher and a systemd user service; you do not need to log out.
 
+**Install once, then it starts automatically.** After restarting your computer and logging into GNOME, the animation appears after **5 minutes without keyboard or mouse activity**. You do not need to open the app or click anything. The installer enables autostart immediately, so a reboot is not required.
+
+For the animation to replace GNOME's automatic blanking and stay visible without automatic suspend, install with:
+
+```bash
+./install.sh --replace-blanking --disable-suspend
+```
+
+This is optional and changes your desktop's idle settings. **Super+L keeps the normal lock screen with your wallpaper.**
+
 ### 4. Open it
 
 Search for **Fedora Screensaver** in the application menu, or run:

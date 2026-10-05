@@ -2,7 +2,7 @@ name: Publish stable release
 on:
   push:
     branches: [main]
-    paths: [VERSION, .github/workflows/release.yml]
+    paths: [VERSION, docs/release-notes.md, .github/workflows/release.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,7 +39,7 @@ jobs:
           version=$(cat VERSION)
           tag="v$version"
           if gh release view "$tag" > /dev/null 2>&1; then
-            echo "Release $tag already exists; leaving it unchanged."
+            gh release edit "$tag" --notes-file docs/release-notes.md
             exit 0
           fi
           gh release create "$tag" "omarchyscreensaverforfedora-$tag.zip" SHA256SUMS --target "$GITHUB_SHA" --title "Fedora Screensaver $tag" --notes-file docs/release-notes.md --latest

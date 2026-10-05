@@ -26,6 +26,18 @@ cd omarchyscreensaverforfedora
 
 Instalator uruchom **bez sudo**, w swojej sesji GNOME. Możesz też pobrać ZIP ze strony [wydania v1.0.0](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/tag/v1.0.0), rozpakować go i wykonać `./install.sh` w jego katalogu.
 
+## Raz instalujesz — potem działa samo
+
+Po instalacji, każdym restarcie komputera i zalogowaniu do GNOME wygaszacz uruchamia się **automatycznie po 5 minutach bezczynności**. Nie musisz otwierać aplikacji ani nic klikać. Autostart włącza się od razu — restart po instalacji nie jest potrzebny.
+
+Aby animacja zastępowała systemowe wygaszanie i komputer nie przechodził automatycznie w uśpienie, zainstaluj ją tak:
+
+```bash
+./install.sh --replace-blanking --disable-suspend
+```
+
+To opcjonalna zmiana ustawień GNOME. **Super+L nadal pokazuje standardową blokadę z Twoją tapetą.**
+
 ## Uruchamianie
 
 W menu aplikacji wyszukaj **Fedora Screensaver**. Możesz też wykonać:
