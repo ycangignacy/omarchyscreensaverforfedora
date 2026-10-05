@@ -147,7 +147,7 @@ class Saver(Gtk.Application):
 
 def main():
     parser = argparse.ArgumentParser(description='Fedora Screensaver — made by ycangignacy')
-    parser.add_argument('--version', action='version', version='Fedora Screensaver 0.1.0-dev — made by ycangignacy')
+    parser.add_argument('--version', action='version', version='Fedora Screensaver 1.0.0 — made by ycangignacy')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--daemon', action='store_true')
     parser.add_argument('--preview-seconds', type=float)

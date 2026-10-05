@@ -1,0 +1,45 @@
+name: Publish stable release
+on:
+  push:
+    branches: [main]
+    paths: [VERSION, .github/workflows/release.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stable-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the exact commit
+        env:
+          REPO: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          git clone --no-checkout "https://github.com/$REPO.git" .
+          git checkout --detach "$COMMIT"
+      - name: Validate and package
+        run: |
+          python3 -m compileall -q app/screensaver.py install.py
+          version=$(cat VERSION)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          archive="omarchyscreensaverforfedora-v$version.zip"
+          git archive --format=zip -0 --prefix="omarchyscreensaverforfedora/" HEAD > "$archive"
+          unzip -t "$archive"
+          sha256sum "$archive" > SHA256SUMS
+      - name: Publish release and downloads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version=$(cat VERSION)
+          tag="v$version"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "Release $tag already exists; leaving it unchanged."
+            exit 0
+          fi
+          gh release create "$tag" "omarchyscreensaverforfedora-$tag.zip" SHA256SUMS --target "$GITHUB_SHA" --title "Fedora Screensaver $tag" --notes-file docs/release-notes.md --latest
