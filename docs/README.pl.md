@@ -19,12 +19,12 @@ sudo dnf install git python3-gobject gtk4 webkitgtk6.0
 Pobierz repozytorium i uruchom instalator:
 
 ```bash
-git clone --branch v1.0.0 https://github.com/ycangignacy/omarchyscreensaverforfedora.git
+git clone --branch v1.0.1 https://github.com/ycangignacy/omarchyscreensaverforfedora.git
 cd omarchyscreensaverforfedora
 ./install.sh
 ```
 
-Instalator uruchom **bez sudo**, w swojej sesji GNOME. Możesz też pobrać ZIP ze strony [wydania v1.0.0](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/tag/v1.0.0), rozpakować go i wykonać `./install.sh` w jego katalogu.
+Instalator uruchom **bez sudo**, w swojej sesji GNOME. Możesz też pobrać ZIP ze strony [wydania v1.0.1](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/tag/v1.0.1), rozpakować go i wykonać `./install.sh` w jego katalogu.
 
 ## Raz instalujesz — potem działa samo
 
@@ -97,7 +97,7 @@ W katalogu repozytorium:
 
 ```bash
 git fetch --tags
-git checkout v1.0.0
+git checkout v1.0.1
 ./install.sh
 ```
 

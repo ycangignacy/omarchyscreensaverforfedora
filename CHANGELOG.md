@@ -2,6 +2,13 @@
 
 made by ycangignacy
 
+## 1.0.1 — 2026-10-05
+
+- Fix a full CPU core being consumed after dismissing the fullscreen screensaver.
+- Run idle detection in a Gio application and animations in a short-lived GTK/WebKit process.
+- Reap renderer processes after exit; terminate them when activity resumes, the session locks or the service stops.
+- Add regression coverage for process cleanup, idle activation and session inhibitors.
+
 ## 1.0.0 — 2026-10-05
 
 First stable release for Fedora Workstation with GNOME.

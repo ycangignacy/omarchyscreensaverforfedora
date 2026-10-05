@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 import signal
+import subprocess
+import sys
 import functools
 import http.server
 import threading
@@ -19,9 +21,85 @@ ROOT = Path(__file__).resolve().parent
 def config():
     return json.loads((ROOT / 'config.json').read_text())
 
+class IdleMonitor(Gio.Application):
+    """Keep idle detection separate from the disposable GTK/WebKit renderer."""
+    def __init__(self):
+        super().__init__(application_id='local.fedora.asciisaver', flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+        self.viewer = None
+        self.started = False
+        self.armed = True
+        self.last_idle = None
+        self.connect('activate', self.activate)
+        self.connect('shutdown', lambda *args: self.dismiss())
+
+    def activate(self, app):
+        if self.started:
+            self.show()
+            return
+        self.started = True
+        self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        self.hold()
+        GLib.timeout_add(1000, self.poll)
+        self.bus.signal_subscribe('org.gnome.ScreenSaver', 'org.gnome.ScreenSaver', 'ActiveChanged', '/org/gnome/ScreenSaver', None, Gio.DBusSignalFlags.NONE, self.lock_changed)
+
+    def call(self, dest, path, iface, method):
+        return self.bus.call_sync(dest, path, iface, method, None, None, Gio.DBusCallFlags.NONE, 1000, None).unpack()[0]
+
+    def locked(self):
+        return self.call('org.gnome.ScreenSaver', '/org/gnome/ScreenSaver', 'org.gnome.ScreenSaver', 'GetActive')
+
+    def poll(self):
+        if self.viewer is not None and self.viewer.poll() is not None:
+            self.viewer = None
+        try:
+            idle = self.call('org.gnome.Mutter.IdleMonitor', '/org/gnome/Mutter/IdleMonitor/Core', 'org.gnome.Mutter.IdleMonitor', 'GetIdletime') / 1000
+            if self.viewer and self.last_idle is not None and idle + .15 < self.last_idle:
+                self.dismiss()
+            self.last_idle = idle
+            if self.locked():
+                self.dismiss()
+            elif idle < 2:
+                self.armed = True
+            elif idle >= config()['idle_seconds'] and self.armed and not self.viewer:
+                # Respect GNOME session inhibitors (movies/presentations).
+                inhibited = self.bus.call_sync('org.gnome.SessionManager', '/org/gnome/SessionManager', 'org.gnome.SessionManager', 'IsInhibited', GLib.Variant('(u)', (8,)), None, Gio.DBusCallFlags.NONE, 1000, None).unpack()[0]
+                if not inhibited:
+                    self.armed = False
+                    self.show()
+        except GLib.Error as exc:
+            print('Idle monitor:', exc, flush=True)
+        return True
+
+    def lock_changed(self, connection, sender, path, interface, signal_name, params):
+        if params.unpack()[0]:
+            self.dismiss()
+
+    def show(self):
+        if self.viewer is not None:
+            if self.viewer.poll() is None:
+                return
+            self.viewer = None
+        if self.locked():
+            return
+        self.viewer = subprocess.Popen([sys.executable, str(ROOT / 'screensaver.py')])
+        self.last_idle = None
+
+    def dismiss(self):
+        viewer, self.viewer = self.viewer, None
+        if viewer is None:
+            return
+        if viewer.poll() is None:
+            viewer.terminate()
+        try:
+            viewer.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            viewer.kill()
+            viewer.wait()
+
+
 class Saver(Gtk.Application):
     def __init__(self, args):
-        super().__init__(application_id='local.fedora.asciisaver.preview' if args.window else 'local.fedora.asciisaver', flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+        super().__init__(application_id='local.fedora.asciisaver.preview' if args.window else 'local.fedora.asciisaver.renderer', flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
         self.args = args
         self.windows = []
         self.httpd = None
@@ -36,11 +114,7 @@ class Saver(Gtk.Application):
             return
         self.started = time.monotonic()
         self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-        if self.args.daemon:
-            self.hold()
-            GLib.timeout_add(1000, self.poll)
-        else:
-            self.show()
+        self.show()
         self.bus.signal_subscribe('org.gnome.ScreenSaver', 'org.gnome.ScreenSaver', 'ActiveChanged', '/org/gnome/ScreenSaver', None, Gio.DBusSignalFlags.NONE, self.lock_changed)
         if self.args.preview_seconds:
             GLib.timeout_add(int(self.args.preview_seconds*1000), self.finish_preview)
@@ -50,26 +124,6 @@ class Saver(Gtk.Application):
 
     def locked(self):
         return self.call('org.gnome.ScreenSaver', '/org/gnome/ScreenSaver', 'org.gnome.ScreenSaver', 'GetActive')
-
-    def poll(self):
-        try:
-            idle = self.call('org.gnome.Mutter.IdleMonitor', '/org/gnome/Mutter/IdleMonitor/Core', 'org.gnome.Mutter.IdleMonitor', 'GetIdletime') / 1000
-            if self.windows and self.last_idle is not None and idle + .15 < self.last_idle:
-                self.dismiss()
-            self.last_idle = idle
-            if self.locked():
-                self.dismiss()
-            elif idle < 2:
-                self.armed = True
-            elif idle >= config()['idle_seconds'] and self.armed and not self.windows:
-                # Respect GNOME session inhibitors (movies/presentations).
-                inhibited = self.bus.call_sync('org.gnome.SessionManager', '/org/gnome/SessionManager', 'org.gnome.SessionManager', 'IsInhibited', GLib.Variant('(u)', (8,)), None, Gio.DBusCallFlags.NONE, 1000, None).unpack()[0]
-                if not inhibited:
-                    self.armed = False
-                    self.show()
-        except GLib.Error as exc:
-            print('Idle monitor:', exc, flush=True)
-        return True
 
     def lock_changed(self, connection, sender, path, interface, signal_name, params):
         if params.unpack()[0]:
@@ -138,8 +192,7 @@ class Saver(Gtk.Application):
         windows, self.windows = self.windows, []
         for win in windows:
             win.destroy()
-        if not self.args.daemon:
-            self.quit()
+        self.quit()
 
     def finish_preview(self):
         self.quit()
@@ -147,13 +200,13 @@ class Saver(Gtk.Application):
 
 def main():
     parser = argparse.ArgumentParser(description='Fedora Screensaver — made by ycangignacy')
-    parser.add_argument('--version', action='version', version='Fedora Screensaver 1.0.0 — made by ycangignacy')
+    parser.add_argument('--version', action='version', version='Fedora Screensaver 1.0.1 — made by ycangignacy')
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--daemon', action='store_true')
     parser.add_argument('--preview-seconds', type=float)
     modes.add_argument('--window', action='store_true')
     args = parser.parse_args()
-    app = Saver(args)
+    app = IdleMonitor() if args.daemon else Saver(args)
     GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, lambda: app.quit() or False)
     app.run([])
 

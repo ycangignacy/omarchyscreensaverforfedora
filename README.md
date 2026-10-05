@@ -6,7 +6,7 @@ The Omarchy-style text animation, with a FEDORA wordmark, packaged as a desktop 
 
 ![FEDORA animated screensaver — made by ycangignacy](docs/preview.gif)
 
-[Download ZIP](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/download/v1.0.0/omarchyscreensaverforfedora-v1.0.0.zip) · [See the original Omarchy screensaver](https://omarchy.org/screensaver/)
+[Download ZIP](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/download/v1.0.1/omarchyscreensaverforfedora-v1.0.1.zip) · [See the original Omarchy screensaver](https://omarchy.org/screensaver/)
 
 ## What you get
 
@@ -31,11 +31,11 @@ sudo dnf install git python3-gobject gtk4 webkitgtk6.0
 ### 2. Download the project
 
 ```bash
-git clone --branch v1.0.0 https://github.com/ycangignacy/omarchyscreensaverforfedora.git
+git clone --branch v1.0.1 https://github.com/ycangignacy/omarchyscreensaverforfedora.git
 cd omarchyscreensaverforfedora
 ```
 
-You can also download the ZIP from the [v1.0.0 release](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/tag/v1.0.0). Extract it, then open a terminal in the extracted folder.
+You can also download the ZIP from the [v1.0.1 release](https://github.com/ycangignacy/omarchyscreensaverforfedora/releases/tag/v1.0.1). Extract it, then open a terminal in the extracted folder.
 
 ### 3. Install it for your user
 
@@ -109,7 +109,7 @@ From your downloaded repository:
 
 ```bash
 git fetch --tags
-git checkout v1.0.0
+git checkout v1.0.1
 ./install.sh
 ```
 
