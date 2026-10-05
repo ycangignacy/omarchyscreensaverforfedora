@@ -1,0 +1,26 @@
+Fedora Screensaver — made by ycangignacy
+
+The GTK application, Fedora integration, installer, documentation and Canvas
+frontend are maintained by ycangignacy under the MIT License.
+
+Animation engine: ttfx by Omacom, a Rust port of TerminalTextEffects by
+ChrisBuilds. The original effect designs and animation engine belong to those
+projects. See licenses/ttfx-LICENSE and licenses/ttfx-NOTICE.
+https://github.com/omacom/ttfx
+https://github.com/ChrisBuilds/terminaltexteffects
+
+The bundled WebAssembly engine and generated JavaScript bindings were fetched
+from https://omarchy.org/assets/js/wte/ on 2026-10-05. Their source is used by
+https://github.com/omacom/omarchy-site/tree/master/assets/js/wte .
+The website's handwritten scripts, styles and renderer are not bundled.
+
+JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors.
+Distributed under the SIL Open Font License 1.1; see licenses/JetBrainsMono-OFL.txt.
+https://github.com/JetBrains/JetBrainsMono
+
+ASCII letter design: Delta Corps Priest 1 by CoSMiC cHiLD, generated with
+patorjk's FIGFont Editor. The FEDORA wordmark was rendered from the font
+embedded in Omarchy's omarchy-ascii utility. See licenses/Omarchy-LICENSE.
+https://github.com/omacom/omarchy/blob/quattro/bin/omarchy-ascii
+
+This is an independent Fedora project. It is not an official Fedora or Omarchy product.
